@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iDream - Tableau de Bord Financier</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/logo.png">
+    <meta name="theme-color" content="#6A0DAD">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header iDream -->
+        <header class="dream-header">
+            <div class="header-left">
+                <div class="logo">
+                    <h1>🌙 iDream Finance</h1>
+                    <p class="tagline">Un snack, un sourire, un rêve</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-name">BABATON Ninon D.</div>
+                    <div class="user-role">Pôle Gestion Financière & Performance</div>
+                </div>
+                <!-- Dans la section header-actions -->
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openTransactionModal()">
+                        + Nouvelle Transaction
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportToPDF()">
+                        📄 Exporter PDF
+                    </button>
+                    <button class="btn btn-success" onclick="contactManagement()">
+                        💬 WhatsApp Direction
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="main-nav">
+            <div class="nav-items">
+                <button class="nav-item active" onclick="showSection('dashboard')">
+                    📊 Tableau de Bord
+                </button>
+                <button class="nav-item" onclick="showSection('transactions')">
+                    💰 Transactions
+                </button>
+                <button class="nav-item" onclick="showSection('products')">
+                    🍿 Produits iDream
+                </button>
+                <button class="nav-item" onclick="showSection('reports')">
+                    📈 Rapports
+                </button>
+                <button class="nav-item" onclick="showSection('strategy')">
+                    🎯 Stratégie
+                </button>
+            </div>
+            <div class="period-selector">
+                <select id="periodSelect" onchange="updateDashboard()">
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month" selected>Ce mois</option>
+                    <option value="quarter">Ce trimestre</option>
+                    <option value="year">Cette année</option>
+                </select>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- SECTION TABLEAU DE BORD -->
+            <section id="dashboard" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card revenue">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <h3>Chiffre d'Affaires</h3>
+                            <div class="stat-amount" id="totalRevenue">0 FCFA</div>
+                            <div class="stat-trend" id="revenueTrend"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card expense">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <h3>Dépenses Total</h3>
+                            <div class="stat-amount" id="totalExpenses">0 FCFA</div>
+                            <div class="stat-trend" id="expenseTrend"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card profit">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-content">
+                            <h3>Bénéfice Net</h3>
+                            <div class="stat-amount" id="netProfit">0 FCFA</div>
+                            <div class="stat-trend" id="profitTrend"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card margin">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-content">
+                            <h3>Marge</h3>
+                            <div class="stat-amount" id="profitMargin">0%</div>
+                            <div class="stat-trend" id="marginTrend"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Répartition Bénéfices -->
+                <div class="profit-split-section">
+                    <h3>📋 Répartition des Bénéfices Net</h3>
+                    <div class="split-cards">
+                        <div class="split-card collaborators">
+                            <div class="split-header">
+                                <h4>45% Collaborateurs</h4>
+                                <span class="split-percent">45%</span>
+                            </div>
+                            <div class="split-amount" id="collaboratorsShare">0 FCFA</div>
+                            <div class="split-description">Partage équitable entre l'équipe</div>
+                        </div>
+                        
+                        <div class="split-card treasury">
+                            <div class="split-header">
+                                <h4>55% iDream Trésorerie</h4>
+                                <span class="split-percent">55%</span>
+                            </div>
+                            <div class="split-amount" id="dreamTreasury">0 FCFA</div>
+                            <div class="split-description">Réinvestissement & Réserves</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphiques -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h4>📈 Évolution Revenus vs Dépenses</h4>
+                        <canvas id="revenueExpenseChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h4>📊 Répartition des Dépenses</h4>
+                        <canvas id="expensesChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION TRANSACTIONS -->
+            <section id="transactions" class="content-section">
+                <div class="section-header">
+                    <h2>💳 Gestion des Transactions</h2>
+                    <div class="filters">
+                        <select id="typeFilter" onchange="filterTransactions()">
+                            <option value="">Tous types</option>
+                            <option value="revenue">Revenus</option>
+                            <option value="expense">Dépenses</option>
+                        </select>
+                        <select id="categoryFilter" onchange="filterTransactions()">
+                            <option value="">Toutes catégories</option>
+                        </select>
+                        <input type="date" id="dateFilter" onchange="filterTransactions()">
+                        <button class="btn btn-secondary" onclick="clearFilters()">❌ Effacer</button>
+                    </div>
+                </div>
+
+                <div class="transactions-table-container">
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Catégorie</th>
+                                <th>Type</th>
+                                <th>Montant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody">
+                            <!-- Transactions dynamiques -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="transactions-summary">
+                    <div class="summary-card">
+                        <span>Total Revenus:</span>
+                        <strong id="filteredRevenue">0 FCFA</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span>Total Dépenses:</span>
+                        <strong id="filteredExpenses">0 FCFA</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span>Solde:</span>
+                        <strong id="filteredBalance">0 FCFA</strong>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION PRODUITS -->
+            <section id="products" class="content-section">
+                <div class="section-header">
+                    <h2>🍿 Produits iDream</h2>
+                    <button class="btn btn-primary" onclick="openProductModal()">
+                        + Ajouter Produit
+                    </button>
+                </div>
+
+                <div class="products-grid" id="productsGrid">
+                    <!-- Produits dynamiques -->
+                </div>
+
+                <div class="products-stats">
+                    <div class="stat-card">
+                        <h3>Produit le plus rentable</h3>
+                        <div id="mostProfitableProduct">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Meilleure marge</h3>
+                        <div id="bestMarginProduct">-</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION RAPPORTS -->
+            <section id="reports" class="content-section">
+                <div class="section-header">
+                    <h2>📈 Rapports Financiers</h2>
+                    <div class="report-actions">
+                        <button class="btn btn-primary" onclick="generateMonthlyReport()">
+                            📋 Générer Rapport
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportToPDF()">
+                            📄 Exporter PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="reports-container">
+                    <div class="report-card">
+                        <h3>📊 Bilan du Mois</h3>
+                        <div class="report-content" id="monthlyReport">
+                            <!-- Contenu dynamique -->
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>💰 Top Dépenses</h3>
+                        <div class="report-content" id="topExpenses">
+                            <!-- Contenu dynamique -->
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <h3>🎯 Recommandations</h3>
+                        <div class="report-content" id="strategicRecommendations">
+                            <!-- Contenu dynamique -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detailed-report">
+                    <h3>📋 Détail des Transactions</h3>
+                    <div id="detailedReportContent"></div>
+                </div>
+            </section>
+
+            <!-- SECTION STRATÉGIE -->
+            <section id="strategy" class="content-section">
+                <div class="section-header">
+                    <h2>🎯 Analyse Stratégique</h2>
+                    <button class="btn btn-primary" onclick="analyzePerformance()">
+                        🔍 Analyser Performance
+                    </button>
+                </div>
+
+                <div class="strategy-grid">
+                    <div class="strategy-card">
+                        <h3>📉 Analyse des Coûts</h3>
+                        <div id="costAnalysis">
+                            <!-- Analyse dynamique -->
+                        </div>
+                    </div>
+
+                    <div class="strategy-card">
+                        <h3>📈 Opportunités Croissance</h3>
+                        <div id="growthOpportunities">
+                            <!-- Opportunités dynamiques -->
+                        </div>
+                    </div>
+
+                    <div class="strategy-card">
+                        <h3>💰 Optimisation Financière</h3>
+                        <div id="financialOptimization">
+                            <!-- Optimisations dynamiques -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-plan">
+                    <h3>📝 Plan d'Action</h3>
+                    <div id="actionPlanContent"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL TRANSACTION -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Nouvelle Transaction</h3>
+                <button class="close-btn" onclick="closeTransactionModal()">&times;</button>
+            </div>
+            <form id="transactionForm" class="modal-form">
+                <div class="form-group">
+                    <label for="transactionType">Type de Transaction *</label>
+                    <select id="transactionType" required onchange="toggleTransactionFields()">
+                        <option value="">Sélectionner un type</option>
+                        <option value="revenue">Revenu (Vente)</option>
+                        <option value="expense">Dépense</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="transactionAmount">Montant (FCFA) *</label>
+                    <input type="number" id="transactionAmount" step="100" min="0" required placeholder="Ex: 5000">
+                </div>
+
+                <div class="form-group">
+                    <label for="transactionDescription" id="descriptionLabel">Description *</label>
+                    <input type="text" id="transactionDescription" required placeholder="Ex: Vente de 4en1">
+                </div>
+
+                <div class="form-group" id="categoryGroup">
+                    <label for="transactionCategory">Catégorie *</label>
+                    <select id="transactionCategory" required>
+                        <!-- Rempli dynamiquement -->
+                    </select>
+                </div>
+
+                <div class="form-group" id="productGroup">
+                    <label for="transactionProduct">Produit iDream</label>
+                    <select id="transactionProduct">
+                        <option value="">Non spécifié</option>
+                        <!-- Produits dynamiques -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="transactionDate">Date *</label>
+                    <input type="date" id="transactionDate" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeTransactionModal()">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PRODUIT -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🍿 Nouveau Produit iDream</h3>
+                <button class="close-btn" onclick="closeProductModal()">&times;</button>
+            </div>
+            <form id="productForm" class="modal-form">
+                <div class="form-group">
+                    <label for="productName">Nom du Produit *</label>
+                    <input type="text" id="productName" required placeholder="Ex: 4 en 1">
+                </div>
+
+                <div class="form-group">
+                    <label for="productPrice">Prix de vente (FCFA) *</label>
+                    <input type="number" id="productPrice" step="50" min="0" required placeholder="Ex: 500">
+                </div>
+
+                <div class="form-group">
+                    <label for="productCost">Coût de production (FCFA) *</label>
+                    <input type="number" id="productCost" step="50" min="0" required placeholder="Ex: 300">
+                </div>
+
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" placeholder="Description du produit..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Ajouter Produit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ALERTE -->
+    <div id="alert" class="alert" style="display: none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
