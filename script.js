@@ -1,3 +1,18 @@
+// Vérifier si localStorage est disponible
+function isLocalStorageAvailable() {
+    try {
+        localStorage.setItem('test', 'test');
+        localStorage.removeItem('test');
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+if (!isLocalStorageAvailable()) {
+    alert("⚠️ Mode navigation privée détecté. Les données ne seront pas sauvegardées.");
+}
+
 // ===== CONFIGURATION iDREAM =====
 class iDreamFinance {
     constructor() {
